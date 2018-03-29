@@ -1,7 +1,10 @@
-
 // 用户控制器原型
-import mongoose, { mongo } from 'mongoose';
+import mongoose from "mongoose";
 
+let User = mongoose.model("User");
 
-const User = mongoose.model('User');
-
+export default class {
+  constructor() {
+    this.User = User;
+  }
+}

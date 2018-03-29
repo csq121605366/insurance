@@ -1,11 +1,11 @@
-import {admin} from "../controllers/admin";
-import {controller, get, post, all} from '../decorator/route'
+import { admin } from "../controllers/admin";
+import { controller, get, post, all } from "../decorator/route";
 
-@controller('admin')
+@controller("user")
 export class user {
-
-    @all(':type')
-    async GET_user(ctx, next) {
-        await api(ctx, next)
-    }
+  @post("login")
+  async POST_login(ctx, next) {
+    ctx.throw(500, "未找到", { redirect: true });
+    await login(ctx, next);
+  }
 }
