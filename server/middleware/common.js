@@ -5,7 +5,7 @@ import config from '../config';
 export const addBody = app => {
     app.use(koaBody());
 }
-export const addBody = app => {
+export const addSession = app => {
     const conf = {
         key: config.sessionKey,
         maxAge: config.sessionMaxAge

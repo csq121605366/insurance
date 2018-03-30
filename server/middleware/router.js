@@ -1,6 +1,6 @@
 // 服务器api接口层
 
-import Route from "../decorator/route";
+import Route from "../decorator";
 import {resolve} from "path";
 const r = path => resolve(__dirname, path);
 

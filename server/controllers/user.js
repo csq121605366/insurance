@@ -9,8 +9,10 @@ class User {
   async signIn(ctx, next) {
     let formData = ctx.request.body;
     if (!formData.username || !formData.password) {
+      // 请求数据不正确
       ctx.throw(406);
     } else {
+      // 通过用户名查询
       this.signInByUserName(ctx, next, formData);
     }
   }

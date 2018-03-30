@@ -22,6 +22,7 @@ const MIDDLEWARE = [
   "handler",
   "history",
   "view",
+  "common",
   "cors",
   "router"
 ];
