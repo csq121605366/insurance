@@ -19,7 +19,14 @@ export default app => {
       ctx.response.status =
         typeof err === "number" ? err : err.statusCode || err.status || 500;
       ctx.response.body = {
-        message: err.message || code[statusCode] || code[status] || "操作错误!",
+        code:
+          typeof err === "number" ? err : err.statusCode || err.status || 500,
+        message:
+          code[err.statusCode] ||
+          code[err.status] ||
+          err.message ||
+          "操作错误!",
+        data: [],
         errorPageUrl: err.errorPageUrl || false
       };
       // if(err.errorPageUrl){

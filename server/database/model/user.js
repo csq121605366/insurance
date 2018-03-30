@@ -7,8 +7,7 @@ const Schema = mongoose.Schema;
 const UserSchema = new Schema({
   id: {
     type: Number,
-    index: true,
-    unique: true
+    index: 1
   },
   openid: String, // 微信的id
   username: {
@@ -143,5 +142,5 @@ UserSchema.methods = {
     });
   }
 };
-
-mongoose.model("User", UserSchema);
+const UserModel = mongoose.model("User", UserSchema);
+export default UserModel;

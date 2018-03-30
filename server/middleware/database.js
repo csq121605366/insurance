@@ -3,7 +3,7 @@ import config from "../config";
 import fs from "fs";
 import { resolve } from "path";
 
-const models = resolve(__dirname, "../database/schema");
+const models = resolve(__dirname, "../database/model");
 fs
   .readdirSync(models)
   .filter(file => ~file.search(/^[^\.].*js$/))
