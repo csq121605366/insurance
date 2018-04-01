@@ -16,10 +16,24 @@ const connect = async () =>
     }
   });
 
-export default app => {
+export default async app => {
   mongoose.set("debug", false);
   mongoose.Promise = global.Promise;
   connect();
+
+  // // 创建第一条数据
+  // const User = mongoose.model("User");
+  // let user = await User.findOne({
+  //   username: "caishangqing"
+  // }).exec();
+  // if (!user) {
+  //   await new User({
+  //     username: "caishangqing",
+  //     password: "123456",
+  //     role: "admin"
+  //   }).save();
+  // }
+
   mongoose.connection.on("disconnected", () => {
     console.log("连接数据库失败!");
     connect();

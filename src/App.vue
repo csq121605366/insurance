@@ -6,9 +6,7 @@
 
 <script>
 import axios from "axios";
-axios.get("http://localhost:8000/api/houses", res => {
-  console.log(res);
-});
+
 export default {
   name: "app"
 };

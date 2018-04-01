@@ -11,6 +11,8 @@ const r = path => resolve(__dirname, path);
  * (database解决数据库插件)
  * (history解决spa项目路由指向的插件)
  * (view解决静态资源视图)
+ * (common公共中间件)
+ * (token验证)
  * (cors解决跨域)
  * (router路由)
  * 顺序不能变
@@ -18,10 +20,12 @@ const r = path => resolve(__dirname, path);
 
 const MIDDLEWARE = [
   "database",
+  "schedule",
   "logger",
-  "handler",
   "history",
   "view",
+  "handler",
+  "token",
   "common",
   "cors",
   "router"

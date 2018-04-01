@@ -4,6 +4,7 @@
       <img class="logo" src="../assets/vux_logo.png">
       <h1> </h1>
     </div>
+    <router-link to="/hello">hello</router-link>
     <group title="cell demo">
       <cell title="VUX" value="cool" is-link></cell>
     </group>

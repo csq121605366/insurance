@@ -1,45 +1,85 @@
 import UserModel from "../database/model/user";
+import jwt from "jsonwebtoken";
+import config from "../config";
+import R from "ramda";
 
-class User {
+class UserController {
   constructor() {}
 
   /**
    * 登录业务操作
    */
-  async signIn(ctx, next) {
-    let formData = ctx.request.body;
-    if (!formData.username || !formData.password) {
-      // 请求数据不正确
-      ctx.throw(406);
+  async getToken(ctx, next) {
+    let find,
+      match,
+      canLogin,
+      formData = ctx.request.body;
+    find = await UserModel.findOne({ username: formData.username }).exec();
+    if (find) {
+      // 如果没有被锁
+      find.incLoginAttempts();
+      if (!find.isLocked) {
+        await find
+          .comparePassword(formData.password, find.password)
+          .then(() => {
+            let token = this.setToken(find);
+            ctx.body = { data: { token } };
+          })
+          .catch(() => {
+            ctx.throw(406, "密码错误");
+          });
+      } else {
+        ctx.throw(404, "尝试登录次数太多,账号已被锁");
+      }
     } else {
-      // 通过用户名查询
-      this.signInByUserName(ctx, next, formData);
+      ctx.throw(404, "账号未找到");
     }
   }
-  /**
-   * 通过账号密码登录
-   */
-  async signInByUserName(ctx, next, formData) {
-    let user, match;
-    try {
-      user = await UserModel.findOne({ username: formData.username }).exec();
-      if (user) {
-        match = await UserModel.comparePassword(password, formData.password);
-        if (match) {
-          ctx.throw(400, "密码错误");
-        } else {
+  setToken(user) {
+    let token = jwt.sign(
+      {
+        username: user.username,
+        role: user.role,
+        createTime: Date.now(),
+        expiresIn: config.tokenExpiresIn
+      },
+      config.tokenSecret,
+      { expiresIn: config.tokenExpiresIn }
+    );
+    return token;
+  }
+
+  async getUserInfo(ctx, next) {
+    let find,
+      formData = ctx.request.body,
+      token = ctx.state.user;
+    find = await UserModel.findOne({ username: formData.username })
+      .select("-password -loginAttempts -lockUntil -meta")
+      .exec();
+    console.log(find);
+    ctx.body = { data: find };
+  }
+
+  async register(ctx, next) {
+    let find,
+      formData = ctx.request.body;
+    find = await UserModel.findOne({ username: formData.username }).exec();
+    if (!find) {
+      await new UserModel(formData)
+        .save()
+        .then(res => {
           ctx.body = {
-            success: 200,
-            data: { 1: 2 }
+            message: "创建成功",
+            username: res.username
           };
-        }
-      } else {
-        ctx.throw(404, "账号未找到");
-      }
-    } catch (err) {
-      ctx.throw(500);
+        })
+        .catch(err => {
+          ctx.throw(406, R.keys(err.errors).join(" ") + " 格式错误");
+        });
+    } else {
+      ctx.throw(406, "用户名已存在");
     }
   }
 }
 
-export default new User();
+export default new UserController();

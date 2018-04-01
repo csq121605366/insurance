@@ -1,14 +1,5 @@
-import koaBody from 'koa-bodyparser';
-import session from 'koa-session';
-import config from '../config';
+import koaBody from "koa-bodyparser";
 
 export const addBody = app => {
-    app.use(koaBody());
-}
-export const addSession = app => {
-    const conf = {
-        key: config.sessionKey,
-        maxAge: config.sessionMaxAge
-    }
-    app.use(session(conf, app));
-}
+  app.use(koaBody());
+};

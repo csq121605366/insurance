@@ -9,30 +9,60 @@
  */
 
 import code from "../config/code";
+import config from "../config";
 
 export default app => {
-  const handler = async (ctx, next) => {
-    try {
-      await next();
-    } catch (err) {
-      console.log(err);
-      ctx.response.status =
-        typeof err === "number" ? err : err.statusCode || err.status || 500;
-      ctx.response.body = {
-        code:
-          typeof err === "number" ? err : err.statusCode || err.status || 500,
-        message:
-          code[err.statusCode] ||
-          code[err.status] ||
-          err.message ||
-          "操作错误!",
-        data: [],
-        errorPageUrl: err.errorPageUrl || false
-      };
-      // if(err.errorPageUrl){
-      //   ctx.redirect(errorPageUrl)
-      // }
+  function koaRes(options = {}) {
+    const custom = options.custom;
+    if (custom && typeof custom !== "function") {
+      throw new TypeError(
+        "`custom` should be a function that return an object"
+      );
     }
-  };
-  app.use(handler);
+    return async (ctx, next) => {
+      try {
+        await next();
+        // 如果定义不要格式化就直接返回body
+        if (ctx.noformate) {
+          // 微信接口使用
+          return;
+        }
+        const status = ctx.status;
+        const data = ctx.body ? ctx.body.data : "出错了没body";
+        if (ctx.method.toLowerCase !== "option" && status !== 404) {
+          ctx.body = {
+            code: 200,
+            data: data,
+            version: options.version || config.version || "1.0.0",
+            now: new Date()
+          };
+          if (custom) {
+            Object.assign(ctx.body, custom(ctx));
+          }
+          ctx.status = status;
+        }
+      } catch (e) {
+        if (401 == e.status) {
+          ctx.status = 401;
+          e.message = code[e.statusCode] || code[e.status] || "操作错误!";
+        }
+        ctx.body = {
+          code: e.status || e.statusCode || 500,
+          message:
+            e.message || code[e.statusCode] || code[e.status] || "操作错误!",
+          version: options.version || config.version || "1.0.0",
+          now: new Date()
+        };
+        if (custom) {
+          Object.assign(ctx.body, custom(ctx));
+        }
+        if (options.debug) {
+          Object.assign(ctx.body, {
+            stack: e.stack || e
+          });
+        }
+      }
+    };
+  }
+  app.use(koaRes({ debug: true }));
 };

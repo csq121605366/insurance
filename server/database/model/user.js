@@ -1,32 +1,58 @@
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 import config from "../config";
-
+import validate from "../validate";
 const Schema = mongoose.Schema;
 
 const UserSchema = new Schema({
-  id: {
-    type: Number,
-    index: 1
-  },
   openid: String, // 微信的id
   username: {
     type: String,
-    trim: true
+    trim: true,
+    required: true
   }, //用户账号
-  password: String, //密码
-  hashed_password: String, //hashed密码
+  password: {
+    type: String,
+    required: true
+  }, //密码
   role: {
     type: String,
     enum: config.USER_ROLE_TYPE, //设置角色
     default: config.USER_ROLE_TYPE[0]
   }, //角色
-  email: String, // 邮箱
-  name: String, //姓名
-  gender: String, //性别
-  avatarUrl: String, //头像地址
   nickname: String, //别名
-  phoneNumber: String, //手机号
+  email: {
+    type: String,
+    validate: {
+      validator: validate.email,
+      message: "格式不正确"
+    }
+  }, // 邮箱
+  status: {
+    type: Number,
+    enum: [0, 1, 2],
+    default: 1
+  }, //用户账号状态 0未激活 1激活 2锁定
+  name: String, //姓名
+  gender: {
+    type: Number,
+    enum: [0, 1, 2] //0代表女性 1代表男性 2代表未知
+  }, //性别
+  avatarUrl: String, //头像地址
+  phoneNumber: {
+    type: String,
+    validate: {
+      validator: validate.phone,
+      message: "必须是有效的11位手机号码!"
+    }
+  }, //手机号
+  idcard: {
+    type: String,
+    validate: {
+      validator: validate.idcardnumber,
+      message: "身份证不正确"
+    }
+  },
   address: String, //联系地址
   country: String, //国家
   province: String, //省份
@@ -59,20 +85,12 @@ UserSchema.virtual("isLocked").get(function() {
   return !!(this.lockUntil && this.lockUntil > Date.now());
 });
 
-// 定义token
-UserSchema.virtual("token").get(function() {
-  var salt = bcrypt.genSaltSync(10);
-  var token = bcrypt.hashSync(String(this._id), salt);
-  return token;
-});
-
 UserSchema.pre("save", function(next) {
   if (this.isNew) {
     this.meta.createdAt = this.meta.updatedAt = Date.now();
   } else {
     this.meta.updatedAt = Date.now();
   }
-
   next();
 });
 
@@ -85,7 +103,6 @@ UserSchema.pre("save", function(next) {
     if (err) return next(err);
     bcrypt.hash(user.password, salt, (error, hash) => {
       if (error) return next(error);
-
       user.password = hash;
       next();
     });
@@ -93,54 +110,51 @@ UserSchema.pre("save", function(next) {
 });
 
 UserSchema.methods = {
-  comparePassword: function(_password, password) {
+  comparePassword: function(password, hash) {
     return new Promise((resolve, reject) => {
-      bcrypt.compare(_password, password, function(err, isMatch) {
-        if (!err) resolve(isMatch);
-        else reject(err);
-      });
-    });
-  },
-
-  incLoginAttempts: function(user) {
-    var that = this;
-    return new Promise((resolve, reject) => {
-      if (that.lockUntil && that.lockUntil < Date.now()) {
-        that.update(
-          {
+      bcrypt.compare(password, hash, async (err, isMatch) => {
+        if (!err && isMatch) {
+          // 如果登录成功重置尝试登录次数为0;
+          await this.update({
             $set: {
               loginAttempts: 1
             },
             $unset: {
               lockUntil: 1
             }
-          },
-          function(err) {
-            if (!err) resolve(true);
-            else reject(err);
-          }
-        );
-      }
-      var updates = {
-        $inc: {
-          loginAttempts: 1
+          });
+          resolve();
+        } else {
+          reject();
         }
-      };
-      if (
-        that.loginAttempts + 1 >= config.MAX_LOGIN_ATTEMPTS &&
-        !that.isLocked
-      ) {
-        updates.$set = {
-          lockUntil: Date.now() + config.LOCK_TIME
-        };
-      }
-
-      that.update(updates, err => {
-        if (!err) resolve(true);
-        else reject(err);
       });
     });
+  },
+  incLoginAttempts: async function() {
+    if (this.lockUntil && this.lockUntil < Date.now()) {
+      // 解锁
+      return await this.update({
+        $set: {
+          loginAttempts: 1
+        },
+        $unset: {
+          lockUntil: 1
+        }
+      });
+    }
+    // 不符合解锁就每次登录增加次数
+    var updates = {
+      $inc: {
+        loginAttempts: 1
+      }
+    };
+    if (this.loginAttempts + 1 >= config.MAX_LOGIN_ATTEMPTS && !this.isLocked) {
+      updates.$set = {
+        lockUntil: Date.now() + config.LOCK_TIME
+      };
+    }
+    return await this.update(updates);
   }
 };
-const UserModel = mongoose.model("User", UserSchema);
-export default UserModel;
+const User = mongoose.model("User", UserSchema);
+export default User;
