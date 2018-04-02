@@ -21,4 +21,3 @@ export class UserRouter {
     await UserController.register(...arguments);
   }
 }
-

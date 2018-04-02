@@ -12,7 +12,7 @@ export default {
   ngrok: "代理的 ngrok id",
   verion: "1.0.0",
   wechat: {
-    refreshTime: "* * */12 * * *", //每天定时更新access_token
+    refreshTime: { hour: [1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23] }, //每天定时更新access_token
     appID: "wxdb0b987716f5cc54",
     appSecret: "40eb0adc05b563a5bbbad3c44b5d0276",
     token: "weixin"
