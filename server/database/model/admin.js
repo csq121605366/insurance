@@ -1,5 +1,7 @@
 /**
- * 用户信息
+ * 
+ * 管理员信息
+ * 
  */
 
 import mongoose from "mongoose";
@@ -8,27 +10,14 @@ import config from "../config";
 import validate from "../validate";
 const Schema = mongoose.Schema;
 
-const UserSchema = new Schema({
-  openid: String, // 微信的id
+const AdminSchema = new Schema({
   username: {
     type: String,
     trim: true
   }, //用户账号
-  password: String, //密码
-  role: {
-    type: String,
-    enum: ["user", "doctor", "agent"], //设置角色
-    required: [true, "未设置角色"]
-  }, //角色
-  name: String, //姓名
-  nickname: String, //别名
-  title: {
-    type: Schema.Types.ObjectId,
-    ref: 'Title'
-  }, //职称
-  setions: [{ type: Schema.Types.ObjectId, ref: 'Setion' }], //关联科室 医生只能关联一个科室,患者可以关联最多三个
-  skills: [{ type: Schema.Types.ObjectId, ref: 'Skill' }], //关联擅长领域
-  description: String, //简介
+  password: {
+    type: String
+  }, //密码
   email: {
     type: String,
     validate: {
@@ -36,15 +25,20 @@ const UserSchema = new Schema({
       message: "格式不正确"
     }
   }, // 邮箱
+  role: {
+    type: Number,
+    enum: [1, 2, 3],
+    default: 1
+  },//管理员类型 1普通管理员 2.可读可写管理员 3.root管理员
   status: {
     type: Number,
     enum: [0, 1, 2, 3],
     default: 1
   }, //用户账号状态 0未激活 1激活 2锁定 3已删除
-  gender: {
-    type: Number,
-    enum: [0, 1, 2] //0代表女性 1代表男性 2代表未知
-  }, //性别
+  email_code: {
+    code: String,
+    createdAt: Date
+  }, //{code:验证码,createdAt:发送时间}
   avatarUrl: String, //头像地址
   phoneNumber: {
     type: String,
@@ -52,18 +46,7 @@ const UserSchema = new Schema({
       validator: validate.phone,
       message: "必须是有效的11位手机号码!"
     }
-  }, //手机号
-  idcard: {
-    type: String,
-    validate: {
-      validator: validate.idcardnumber,
-      message: "身份证不正确"
-    }
   },
-  address: String, //联系地址
-  country: String, //国家
-  province: String, //省份
-  city: String, //城市
   loginAttempts: {
     type: Number,
     required: true,
@@ -87,11 +70,11 @@ const UserSchema = new Schema({
 });
 
 // 定义虚拟属性是否锁了
-UserSchema.virtual("isLocked").get(function () {
+AdminSchema.virtual("isLocked").get(function () {
   return !!(this.lockUntil && this.lockUntil > Date.now());
 });
 
-UserSchema.pre("save", function (next) {
+AdminSchema.pre("save", function (next) {
   if (this.isNew) {
     this.meta.createdAt = this.meta.updatedAt = Date.now();
   } else {
@@ -100,7 +83,7 @@ UserSchema.pre("save", function (next) {
   next();
 });
 
-UserSchema.pre("save", function (next) {
+AdminSchema.pre("save", function (next) {
   var user = this;
 
   if (!user.isModified("password")) return next();
@@ -115,11 +98,12 @@ UserSchema.pre("save", function (next) {
   });
 });
 
-UserSchema.methods = {
+AdminSchema.methods = {
   comparePassword: function (password, hash) {
     return new Promise((resolve, reject) => {
       bcrypt.compare(password, hash, async (err, isMatch) => {
-        if (!err && isMatch) {
+        if (err) reject('err');
+        if (isMatch) {
           // 如果登录成功重置尝试登录次数为0;
           await this.update({
             $set: {
@@ -128,10 +112,13 @@ UserSchema.methods = {
             $unset: {
               lockUntil: 1
             }
-          });
-          resolve();
+          }, function (err, doc) {
+            if (!err) resolve(isMatch)
+            reject(err);
+          })
+          console.log(isMatch)
         } else {
-          reject();
+          resolve(isMatch)
         }
       });
     });
@@ -162,5 +149,6 @@ UserSchema.methods = {
     return await this.update(updates);
   }
 };
-const User = mongoose.model("User", UserSchema);
-export default User;
+const Admin = mongoose.model("Admin", AdminSchema);
+export default Admin;
+

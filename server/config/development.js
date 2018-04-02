@@ -3,9 +3,9 @@ export default {
   port: 8080,
   base: "http://localhost:8080",
   SITE_ROOT_URL: "http://localhost:8080",
-  tokenSecret: "insurance:token", //token加密密钥
-  tokenExpiresIn: "1h", //token最大生命值
-  tokenGetUrlRegExp: new RegExp(/^\/api\/user\/getToken$/),
+  sessionKey: "insurance:session", //session加密密钥
+  sessionMaxAge: 86400000, //session最大生命值
+  // tokenGetUrlRegExp: new RegExp(/^\/api\/user\/getToken$/),
   apiPrefix: "/api", // apiPrefix：api接口前缀
   corsOrigin: new RegExp(/^\/api/), // corsOrigin：跨域匹配
   corsRootUrl: "http://localhost:8080",
@@ -16,6 +16,15 @@ export default {
     appID: "wxdb0b987716f5cc54",
     appSecret: "40eb0adc05b563a5bbbad3c44b5d0276",
     token: "weixin"
+  },
+  email: {
+    accountUser: '121605366@qq.com',//发送邮件的qq
+    accountPass: 'ilepztuozospbhfa',//第三方授权密码，不是qq邮箱密码，在发送邮箱里面设置
+    service: 'qq',
+    host: 'smtp.qq.email',
+    port: 465,
+    secure: true,
+    interval: 3 * 60 * 1000
   },
   qiniu: {
     AK: "你的七牛 AK",

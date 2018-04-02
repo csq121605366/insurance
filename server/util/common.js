@@ -1,11 +1,10 @@
 import xml2js from "xml2js";
-import tpl from "./tpl";
+import { wxtpl } from "./tpl";
 import sha1 from "sha1";
 
 export function parseXML(xml) {
   return new Promise((resolve, reject) => {
     xml2js.parseString(xml, { trim: true }, (err, content) => {
-      console.log("c", content);
       if (err) reject(err);
       else resolve(content);
     });
@@ -61,7 +60,7 @@ export function template(content, message) {
       fromUserName: message.ToUserName
     }
   );
-  return tpl(info);
+  return wxtpl(info);
 }
 
 /**
@@ -71,6 +70,46 @@ export function createNonce() {
   return Math.random()
     .toString(36)
     .substr(2, 15);
+}
+
+/**
+ * 生成邮箱code码
+ * @param {*} len 
+ */
+export function createCode(len) {
+  let code = "";
+  var codeLength = len || 6;//验证码的长度   
+  var random = new Array(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R',
+    'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z');//随机数   
+  for (var i = 0; i < codeLength; i++) {//循环操作   
+    var index = Math.floor(Math.random() * 36);//取得随机数的索引（0~35）   
+    code += random[index];//根据索引取得随机数加到code上   
+  }
+  return code;
+}
+
+/**
+ * 时间转换
+ * @param {*} msd 
+ */
+export function timefomate(msd) {  
+  var time = parseFloat(msd) / 1000;  
+  if (null != time && "" != time) {  
+      if (time > 60 && time < 60 * 60) {  
+          time = parseInt(time / 60.0) + "分钟" + parseInt((parseFloat(time / 60.0) -  
+              parseInt(time / 60.0)) * 60) + "秒";  
+      }  
+      else if (time >= 60 * 60 && time < 60 * 60 * 24) {  
+          time = parseInt(time / 3600.0) + "小时" + parseInt((parseFloat(time / 3600.0) -  
+              parseInt(time / 3600.0)) * 60) + "分钟" +  
+              parseInt((parseFloat((parseFloat(time / 3600.0) - parseInt(time / 3600.0)) * 60) -  
+              parseInt((parseFloat(time / 3600.0) - parseInt(time / 3600.0)) * 60)) * 60) + "秒";  
+      }  
+      else {  
+          time = parseInt(time) + "秒";  
+      }  
+  }  
+  return time;  
 }
 
 /**

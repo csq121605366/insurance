@@ -19,23 +19,23 @@ module.exports = {
   ** Build configuration
   */
   build: {
-    // vendor: ["mint-ui", "axios"],
-    // babel: {
-    //   plugins: [
-    //     [
-    //       "component",
-    //       [
-    //         {
-    //           libraryName: "mint-ui",
-    //           style: true
-    //         },
-    //         "transform-async-to-generator",
-    //         "transform-runtime"
-    //       ]
-    //     ]
-    //   ],
-    //   comments: true
-    // }
+    vendor: ["mint-ui", "axios"],
+    babel: {
+      plugins: [
+        // [
+        //   "component",
+        //   [
+        //     {
+        //       libraryName: "mint-ui",
+        //       style: true
+        //     },
+        //     "transform-async-to-generator",
+        //     "transform-runtime"
+        //   ]
+        // ]
+      ],
+      comments: true
+    }
   },
   plugins: [{ src: "~plugins/mint-ui", ssr: true }]
 };

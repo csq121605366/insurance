@@ -31,12 +31,3 @@ export class weixinRouter {
   }
 }
 
-@controller("admin")
-export class weixinAdminRouter {
-  constructor() {}
-
-  @post("test")
-  async POST_test(ctx, next) {
-    await WeixinController.test(...arguments);
-  }
-}

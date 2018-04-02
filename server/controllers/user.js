@@ -4,7 +4,7 @@ import config from "../config";
 import R from "ramda";
 
 class UserController {
-  constructor() {}
+  constructor() { }
 
   /**
    * 登录业务操作

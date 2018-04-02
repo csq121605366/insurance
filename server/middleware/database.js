@@ -7,7 +7,9 @@ const models = resolve(__dirname, "../database/model");
 fs
   .readdirSync(models)
   .filter(file => ~file.search(/^[^\.].*js$/))
-  .forEach(file => require(resolve(models, file)));
+  .forEach(file => {
+    require(resolve(models, file))
+  });
 
 const connect = async () =>
   await mongoose.connect(config.mongodb, {
@@ -17,22 +19,22 @@ const connect = async () =>
   });
 
 export default async app => {
+
   mongoose.set("debug", false);
   mongoose.Promise = global.Promise;
   connect();
 
-  // // 创建第一条数据
-  // const User = mongoose.model("User");
-  // let user = await User.findOne({
-  //   username: "caishangqing"
-  // }).exec();
-  // if (!user) {
-  //   await new User({
-  //     username: "caishangqing",
-  //     password: "123456",
-  //     role: "admin"
-  //   }).save();
-  // }
+  // 初始化数据
+  let Admin = mongoose.model('Admin');
+  let find = await Admin.findOne({
+    username: "caishangqing"
+  }).exec();
+  if (!find) {
+    await new Admin({
+      username: "caishangqing",
+      password: "123456"
+    }).save()
+  }
 
   mongoose.connection.on("disconnected", () => {
     console.log("连接数据库失败!");
@@ -46,3 +48,4 @@ export default async app => {
     console.log("Connected to MongoDB");
   });
 };
+

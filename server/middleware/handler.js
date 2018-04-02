@@ -27,11 +27,12 @@ export default app => {
           // 微信接口使用
           return;
         }
-        const status = ctx.status;
-        const data = ctx.body ? ctx.body.data : "出错了没body";
+        const status = ctx.status || 500;
+        const data = ctx.body ? ctx.body : "出错了没body";
         if (ctx.method.toLowerCase !== "option" && status !== 404) {
           ctx.body = {
             code: 200,
+            message: '操作成功',
             data: data,
             version: options.version || config.version || "1.0.0",
             now: new Date()
@@ -42,6 +43,7 @@ export default app => {
           ctx.status = status;
         }
       } catch (e) {
+        if (!e) return;
         if (401 == e.status) {
           ctx.status = 401;
           e.message = code[e.statusCode] || code[e.status] || "操作错误!";
